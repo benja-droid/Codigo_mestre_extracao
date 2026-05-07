@@ -1,0 +1,72 @@
+import os
+from docling.document_converter import DocumentConverter
+
+
+def processar_pdfs(pasta_entrada, pasta_saida=None, formato_saida="markdown"):
+    """
+    Processa todos os PDFs em uma pasta usando docling.DocumentConverter
+    
+    Args:
+        pasta_entrada (str): Caminho para a pasta com os PDFs
+        pasta_saida (str, optional): Pasta para salvar os resultados. Se None, não salva.
+        formato_saida (str): Formato de exportação ('markdown', 'text' ou 'html')
+    """
+    # Inicializa o conversor
+    converter = DocumentConverter()
+    
+    # Cria pasta de saída se especificada
+    if pasta_saida:
+        os.makedirs(pasta_saida, exist_ok=True)
+    
+    # Processa cada arquivo PDF
+    for arquivo in os.listdir(pasta_entrada):
+        if arquivo.lower().endswith('.pdf'):
+            caminho = os.path.join(pasta_entrada, arquivo)
+            
+            try:
+                print(f"\nProcessando: {arquivo}")
+                
+                # Conversão do documento
+                result = converter.convert(caminho)
+                
+                # Exporta para o formato desejado
+                if formato_saida == "markdown":
+                    conteudo = result.document.export_to_markdown()
+                elif formato_saida == "html":
+                    conteudo = result.document.export_to_html()
+                else:  # texto puro por padrão
+                    conteudo = result.document.export_to_text()
+                
+                # Exibe preview no console
+                print(f"Texto extraído (amostra):\n{conteudo[:200]}...")
+                
+                # Salva em arquivo se pasta_saida foi especificada
+                if pasta_saida:
+                    extensao = {
+                        'markdown': '.md',
+                        'html': '.html',
+                        'text': '.txt'
+                    }.get(formato_saida, '.txt')
+                    
+                    nome_saida = arquivo.replace('.pdf', extensao)
+                    caminho_saida = os.path.join(pasta_saida, nome_saida)
+                    
+                    with open(caminho_saida, 'w', encoding='utf-8') as f:
+                        f.write(conteudo)
+                    print(f"Arquivo salvo em: {caminho_saida}")
+                
+            except Exception as e:
+                print(f"Erro ao processar {arquivo}: {str(e)}")
+
+# Exemplo de uso
+if __name__ == "__main__":
+    # Configurações
+    input_folder = ""
+    output_folder = ""
+    
+    # Executa a conversão para Markdown
+    processar_pdfs(
+        pasta_entrada=input_folder,
+        pasta_saida=output_folder,
+        formato_saida="markdown"  # Pode ser "text" ou "html"
+    )
